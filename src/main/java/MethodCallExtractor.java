@@ -5,9 +5,13 @@ import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
+import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserEnumDeclaration;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserMethodDeclaration;
+import com.github.javaparser.symbolsolver.javassistmodel.JavassistMethodDeclaration;
 import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
+import com.github.javaparser.symbolsolver.reflectionmodel.ReflectionMethodDeclaration;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.JarTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 
@@ -25,34 +29,44 @@ import java.util.stream.Collectors;
 
 public class MethodCallExtractor {
     public static void main(String[] args) {
-        String srcPath = "D:\\git\\testservices-common\\src\\main\\java";
+        String srcPath = "D:\\git\\jp\\data\\MaintenanceUPL\\src\\main\\java";
+        String libPath = "D:\\git\\jp\\data\\lib";
         MethodCallExtractor extractor = new MethodCallExtractor();
-        Map<String, List<String>> methodCallRelation = extractor.getMethodCallRelation(srcPath);
+        Map<String, List<String>> methodCallRelation = extractor.getMethodCallRelation(srcPath, libPath);
         extractor.printMap(methodCallRelation);
     }
 
-    private TypeSolver getCombinedSolver(String javaSrcPath) {
+    private TypeSolver getCombinedSolver(String javaSrcPath, String libPath) {
         ReflectionTypeSolver reflectionTypeSolver = new ReflectionTypeSolver();
         reflectionTypeSolver.setParent(reflectionTypeSolver);
         TypeSolver javaParserTypeSolver = new JavaParserTypeSolver(new File(javaSrcPath));
+        List<String> jarPaths = getFilesBySuffixIgnoringCase(libPath, "jar");
+        List<JarTypeSolver> jarTypeSolvers = new ArrayList<>(jarPaths.size());
+        try {
+            for (String jarPath : jarPaths) {
+                jarTypeSolvers.add(new JarTypeSolver(jarPath));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         CombinedTypeSolver combinedTypeSolver = new CombinedTypeSolver();
         combinedTypeSolver.add(reflectionTypeSolver);
         combinedTypeSolver.add(javaParserTypeSolver);
-
-        JavaSymbolSolver symbolSolver = new JavaSymbolSolver(combinedTypeSolver);
+        jarTypeSolvers.stream().forEach(t -> combinedTypeSolver.add(t));
         return combinedTypeSolver;
     }
 
-    public Map<String, List<String>> getMethodCallRelation(String srcPath) {
-        TypeSolver combinedTypeSolver = getCombinedSolver(srcPath);
+    public Map<String, List<String>> getMethodCallRelation(String srcPath, String libPath) {
+        TypeSolver combinedTypeSolver = getCombinedSolver(srcPath, libPath);
         JavaSymbolSolver symbolSolver = new JavaSymbolSolver(combinedTypeSolver);
         JavaParser.getStaticConfiguration().setSymbolResolver(symbolSolver);
 
         Map<String, List<String>> callerCallees = new HashMap<>();
         List<String> javaFiles = getFilesBySuffixIgnoringCase(srcPath, "java");
+        int cnt = 2;
         for (String javaFile : javaFiles) {
-            if ("D:\\git\\testservices-common\\src\\main\\java\\com\\huawei\\tmss\\services\\TestManagementService\\TestManagementServiceSoapBindingStub.java".equals(javaFile)) {
-                continue;
+            if (cnt-- < 0) {
+                break;
             }
             System.out.println("processing: " + javaFile);
             extract(javaFile, callerCallees);
@@ -82,7 +96,7 @@ public class MethodCallExtractor {
                 caller = methodDeclaration.resolve().getQualifiedSignature();
             } catch (Exception e) {
                 caller = methodDeclaration.getSignature().asString();
-                System.out.println(e.getMessage());
+                System.out.println(caller + "-->" +e.getMessage());
             }
             assert caller != null;
             if (!callerCallees.containsKey(caller)) {
@@ -112,12 +126,18 @@ public class MethodCallExtractor {
                 ResolvedMethodDeclaration resolvedMethodDeclaration = n.resolve();
                 if (resolvedMethodDeclaration instanceof JavaParserMethodDeclaration) {
                     collector.add(n.resolve().getQualifiedSignature());
-//                    System.out.println(n.resolve().getQualifiedSignature());
-                } else {
-//                    System.out.println("不是工程下的方法调用");
+                    System.out.println("依赖src==> " + n.resolve().getQualifiedSignature());
+                } else if (resolvedMethodDeclaration instanceof ReflectionMethodDeclaration) {
+                    System.out.println("依赖jdk==> " + n.resolve().getQualifiedSignature());
+                } else if (resolvedMethodDeclaration instanceof JavassistMethodDeclaration){
+                    System.out.println("依赖jar-->" +  n.resolve().getQualifiedSignature());
+                } else if (resolvedMethodDeclaration instanceof JavaParserEnumDeclaration.ValuesMethod) {
+                    System.out.println("依赖临时新增在内存的方法, 不应该出现" + n.resolve().getQualifiedSignature());
+                }else{
+                    System.out.println("能符号解析, 但未知类型. 不应该出现" + n.resolve().getQualifiedSignature());
                 }
             } catch (Exception e) {
-//                System.out.println("第三方调用--->" + n.getName()+"." + n.getArguments());
+                System.out.println("Error符号解析异常--->" + n.getNameAsString()+"." + n.getArguments());
             }
             // Don't forget to call super, it may find more method calls inside the arguments of this method call, for example.
             super.visit(n, collector);
