@@ -1,6 +1,9 @@
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * 有向图
+ */
 public class Digraph {
     private final int V;
     private int E;

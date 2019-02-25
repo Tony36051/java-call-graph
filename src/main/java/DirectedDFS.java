@@ -1,5 +1,8 @@
 import com.sun.corba.se.impl.orbutil.graph.Graph;
 
+/**
+ * 有向图的深度优先遍历，用于代码影响分析，逆向图后可以往上分析
+ */
 public class DirectedDFS {
     private boolean[] marked;
     public DirectedDFS(Digraph G, int s){

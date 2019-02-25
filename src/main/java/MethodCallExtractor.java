@@ -27,21 +27,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * 方法调用提取类
+ */
 public class MethodCallExtractor {
     public static void main(String[] args) {
-        String srcPath = "D:\\git\\jp\\data\\MaintenanceUPL\\src\\main\\java";
-        String libPath = "D:\\git\\jp\\data\\lib";
+        String srcPath = "D:\\git\\jp\\data\\MaintenanceUPL\\src\\main\\java";//扫描的工程目录，从包含com.huawei.it的目录开始
+        String libPath = "D:\\git\\jp\\data\\lib"; //工程依赖的包， 可以不配
         MethodCallExtractor extractor = new MethodCallExtractor();
         Map<String, List<String>> methodCallRelation = extractor.getMethodCallRelation(srcPath, libPath);
         extractor.printMap(methodCallRelation);
     }
 
+    //获取符号推理器
     private TypeSolver getCombinedSolver(String javaSrcPath, String libPath) {
-        ReflectionTypeSolver reflectionTypeSolver = new ReflectionTypeSolver();
+        ReflectionTypeSolver reflectionTypeSolver = new ReflectionTypeSolver(); // jdk推理
         reflectionTypeSolver.setParent(reflectionTypeSolver);
-        TypeSolver javaParserTypeSolver = new JavaParserTypeSolver(new File(javaSrcPath));
+        TypeSolver javaParserTypeSolver = new JavaParserTypeSolver(new File(javaSrcPath)); //工程内代码推理
         List<String> jarPaths = getFilesBySuffixIgnoringCase(libPath, "jar");
-        List<JarTypeSolver> jarTypeSolvers = new ArrayList<>(jarPaths.size());
+        List<JarTypeSolver> jarTypeSolvers = new ArrayList<>(jarPaths.size()); //jar包依赖
         try {
             for (String jarPath : jarPaths) {
                 jarTypeSolvers.add(new JarTypeSolver(jarPath));
@@ -56,6 +60,12 @@ public class MethodCallExtractor {
         return combinedTypeSolver;
     }
 
+    /**
+     * 获取方法调用关系
+     * @param srcPath
+     * @param libPath
+     * @return 定义的方法->依赖的方法列表
+     */
     public Map<String, List<String>> getMethodCallRelation(String srcPath, String libPath) {
         TypeSolver combinedTypeSolver = getCombinedSolver(srcPath, libPath);
         JavaSymbolSolver symbolSolver = new JavaSymbolSolver(combinedTypeSolver);
@@ -65,20 +75,23 @@ public class MethodCallExtractor {
         List<String> javaFiles = getFilesBySuffixIgnoringCase(srcPath, "java");
         int cnt = 2;
         for (String javaFile : javaFiles) {
-            if (cnt-- < 0) {
-                break;
-            }
+            //TODO:删掉这个， 加入为了方便调试
+//            if (cnt-- < 0) {
+//                break;
+//            }
             System.out.println("processing: " + javaFile);
             extract(javaFile, callerCallees);
         }
         return callerCallees;
     }
 
+
     private void printMap(Map<String, List<String>> callerCallees) {
         callerCallees.entrySet().stream().filter(t -> !t.getValue().isEmpty())
                 .forEach(t -> System.out.println(t.getKey() + ": " + t.getValue()));
     }
 
+    // 分析单个文件
     private void extract(String javaFile, Map<String, List<String>> callerCallees) {
         CompilationUnit cu = null;
         try {
@@ -106,6 +119,7 @@ public class MethodCallExtractor {
         }
     }
 
+    //辅助函数， 根据后缀名筛选文件
     private List<String> getFilesBySuffixIgnoringCase(String srcPath, String suffix) {
         List<String> filePaths = null;
         try {
@@ -118,6 +132,7 @@ public class MethodCallExtractor {
         return filePaths;
     }
 
+    //遍历代码文件时， 关注方法调用的表达式， 然后提取到第二个参数中。正式工作时应该删去打印语句
     private static class MethodCallVisitor extends VoidVisitorAdapter<List<String>> {
         @Override
         public void visit(MethodCallExpr n, List<String> collector) {
