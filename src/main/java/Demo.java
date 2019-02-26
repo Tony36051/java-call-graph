@@ -1,20 +1,9 @@
-import com.github.javaparser.JavaParser;
-import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
-import com.github.javaparser.symbolsolver.JavaSymbolSolver;
-import com.github.javaparser.symbolsolver.javaparser.Navigator;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserMethodDeclaration;
-import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
-import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
-import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
-import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.List;
 
@@ -25,27 +14,29 @@ public class Demo {
 
 
     public static void main(String[] args) throws FileNotFoundException {
-        String path = "D:\\git\\testservices-common\\src\\main\\java\\com\\huawei\\it\\unistar\\test\\common\\" +
-                "service\\impl\\TFSTestManagementServiceImpl.java";
-        ReflectionTypeSolver reflectionTypeSolver = new ReflectionTypeSolver();
-        reflectionTypeSolver.setParent(reflectionTypeSolver);
-        TypeSolver javaParserTypeSolver = new JavaParserTypeSolver(new File("D:\\git\\testservices-common\\src\\main\\java"));
-        CombinedTypeSolver combinedTypeSolver = new CombinedTypeSolver();
-        combinedTypeSolver.add(reflectionTypeSolver);
-        combinedTypeSolver.add(javaParserTypeSolver);
-
-        JavaSymbolSolver symbolSolver = new JavaSymbolSolver(combinedTypeSolver);
-        JavaParser.getStaticConfiguration().setSymbolResolver(symbolSolver);
-
-        FileInputStream in = new FileInputStream(path);
-        CompilationUnit cu = JavaParser.parse(in);
-
-        List<MethodDeclaration> all = cu.findAll(MethodDeclaration.class);
-        for (MethodDeclaration methodDeclaration : all) {
-            System.out.println("=======" + methodDeclaration.resolve().getQualifiedSignature() + "==========");
-            methodDeclaration.accept(new MethodCallVisitor(), null);
-
-        }
+        List<String> strings = Utils.makeListFromOneElement(null);
+        System.out.println(strings);
+//        String path = "D:\\git\\testservices-common\\src\\main\\java\\com\\huawei\\it\\unistar\\test\\common\\" +
+//                "service\\impl\\TFSTestManagementServiceImpl.java";
+//        ReflectionTypeSolver reflectionTypeSolver = new ReflectionTypeSolver();
+//        reflectionTypeSolver.setParent(reflectionTypeSolver);
+//        TypeSolver javaParserTypeSolver = new JavaParserTypeSolver(new File("D:\\git\\testservices-common\\src\\main\\java"));
+//        CombinedTypeSolver combinedTypeSolver = new CombinedTypeSolver();
+//        combinedTypeSolver.add(reflectionTypeSolver);
+//        combinedTypeSolver.add(javaParserTypeSolver);
+//
+//        JavaSymbolSolver symbolSolver = new JavaSymbolSolver(combinedTypeSolver);
+//        JavaParser.getStaticConfiguration().setSymbolResolver(symbolSolver);
+//
+//        FileInputStream in = new FileInputStream(path);
+//        CompilationUnit cu = JavaParser.parse(in);
+//
+//        List<MethodDeclaration> all = cu.findAll(MethodDeclaration.class);
+//        for (MethodDeclaration methodDeclaration : all) {
+//            System.out.println("=======" + methodDeclaration.resolve().getQualifiedSignature() + "==========");
+//            methodDeclaration.accept(new MethodCallVisitor(), null);
+//
+//        }
     }
 
     private static class MethodVisitor extends VoidVisitorAdapter<Void> {
