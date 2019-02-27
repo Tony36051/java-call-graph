@@ -1,7 +1,4 @@
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -40,16 +37,24 @@ public class Utils {
         return files;
     }
 
-    public static List<String> getLinesFrom(String file) {
+    private static File getFileInResources(String fileName){
+        ClassLoader classLoader = Utils.class.getClassLoader();
+        File file = new File(classLoader.getResource(fileName).getFile());
+        return file;
+    }
+
+    public static List<String> getLinesFrom(String fileName) {
         String line = null;
         List<String> lines = new ArrayList<>();
-        if (file == null || "".equals(file)) return lines;
+        if (fileName == null || "".equals(fileName)) return lines;
         try {
+            File file = getFileInResources(fileName);
             BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
             while (null != (line = bufferedReader.readLine())) {
                 lines.add(line.trim());
             }
         } catch (FileNotFoundException e) {
+            System.out.println("cannot find from " + new File(".").getAbsoluteFile());
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();

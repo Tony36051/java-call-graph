@@ -10,6 +10,7 @@ import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParse
 import com.github.javaparser.symbolsolver.javassistmodel.JavassistMethodDeclaration;
 import com.github.javaparser.symbolsolver.reflectionmodel.ReflectionMethodDeclaration;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -22,6 +23,7 @@ import java.util.Map;
  */
 public class MethodCallExtractor {
     public static void main(String[] args) {
+
         String srcPath = "D:\\git\\jp\\data\\MaintenanceUPL\\src\\main\\java";//扫描的工程目录，从包含com.huawei.it的目录开始
         String libPath = "D:\\git\\jp\\data\\lib"; //工程依赖的包， 可以不配
         MethodCallExtractor extractor = new MethodCallExtractor();
@@ -30,8 +32,9 @@ public class MethodCallExtractor {
     }
 
     public Map<String, List<String>> getMethodCallRelationByDefault() {
+
         List<String> srcPaths = Utils.getLinesFrom(Utils.SRC_CFG);
-        List<String> libPaths = Utils.getLinesFrom(Utils.SRC_CFG);
+        List<String> libPaths = Utils.getLinesFrom(Utils.LIB_CFG);
         return getMethodCallRelation(srcPaths, libPaths);
     }
 
@@ -55,7 +58,7 @@ public class MethodCallExtractor {
         int javaFileNum = javaFiles.size();
         for (int i = 0; i < javaFiles.size(); i++) {
             String javaFile = javaFiles.get(i);
-            System.out.println(String.valueOf(i * 1.0 / javaFileNum).substring(0, 4) + " processing: " + javaFile);
+            System.out.println(i + "/" + javaFileNum + " processing: " + javaFile);
             extract(javaFile, callerCallees);
         }
         return callerCallees;

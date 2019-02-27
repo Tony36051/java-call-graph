@@ -14,7 +14,7 @@ public class CallGraph {
         String[] mes = new String[methodNum];
         Map<String, Integer> me2id = new HashMap<>(methodNum);
         methodCallRelation.keySet().toArray(mes);
-//        System.out.println("total method declarations: " + methodNum);
+        System.out.println("total method declarations: " + methodNum);
         for (int i = 0; i < methodNum; i++) {
             System.out.println(mes[i]);
             me2id.put(mes[i], i);
