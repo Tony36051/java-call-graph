@@ -17,7 +17,7 @@ public class SymbolSolverFactory {
     }
 
     public static JavaSymbolSolver getJavaSymbolSolverByDefault(){
-        return getJavaSymbolSolverFromConfig("src.cfg", "lib.cfg");
+        return getJavaSymbolSolverFromConfig(Utils.SRC_CFG, Utils.LIB_CFG);
     }
 
 

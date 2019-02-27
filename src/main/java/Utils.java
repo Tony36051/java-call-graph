@@ -10,6 +10,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class Utils {
+
+    public static String SRC_CFG = "src.cfg";
+    public static String LIB_CFG = "lib.cfg";
+
     public static void printMap(Map<String, List<String>> callerCallees) {
         callerCallees.entrySet().stream().filter(t -> !t.getValue().isEmpty())
                 .forEach(t -> System.out.println(t.getKey() + ": " + t.getValue()));

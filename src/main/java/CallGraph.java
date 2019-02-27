@@ -6,10 +6,8 @@ import java.util.stream.Collectors;
  */
 public class CallGraph {
     public static void main(String[] args) {
-        String srcPath = "D:\\git\\jp\\data\\MaintenanceUPL\\src\\main\\java";//扫描的源文件路径
-        String libPath = "D:\\git\\jp\\data\\lib"; // 原工程依赖的jar包路径
         MethodCallExtractor extractor = new MethodCallExtractor();
-        Map<String, List<String>> methodCallRelation = extractor.getMethodCallRelation(srcPath, libPath);
+        Map<String, List<String>> methodCallRelation = extractor.getMethodCallRelationByDefault();
 
 //        CallGraph callGraph = new CallGraph();
         int methodNum = methodCallRelation.keySet().size();

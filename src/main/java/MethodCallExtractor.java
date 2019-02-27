@@ -29,6 +29,11 @@ public class MethodCallExtractor {
         Utils.printMap(methodCallRelation);
     }
 
+    public Map<String, List<String>> getMethodCallRelationByDefault() {
+        List<String> srcPaths = Utils.getLinesFrom(Utils.SRC_CFG);
+        List<String> libPaths = Utils.getLinesFrom(Utils.SRC_CFG);
+        return getMethodCallRelation(srcPaths, libPaths);
+    }
 
     /**
      * 获取方法调用关系
@@ -50,7 +55,7 @@ public class MethodCallExtractor {
         int javaFileNum = javaFiles.size();
         for (int i = 0; i < javaFiles.size(); i++) {
             String javaFile = javaFiles.get(i);
-            System.out.println(i*1.0 / javaFileNum + " processing: " + javaFile);
+            System.out.println(String.valueOf(i * 1.0 / javaFileNum).substring(0, 4) + " processing: " + javaFile);
             extract(javaFile, callerCallees);
         }
         return callerCallees;
@@ -75,7 +80,7 @@ public class MethodCallExtractor {
                 caller = methodDeclaration.resolve().getQualifiedSignature();
             } catch (Exception e) {
                 caller = methodDeclaration.getSignature().asString();
-                System.out.println("ERROR无法获取全限定方法名："+caller + " 因为：" + e.getMessage() );
+                System.out.println("ERROR无法获取全限定方法名：" + caller + " 因为：" + e.getMessage());
             }
             assert caller != null;
             if (!callerCallees.containsKey(caller)) {
@@ -100,8 +105,8 @@ public class MethodCallExtractor {
                 }
             } catch (Exception e) {
                 System.out.println("Error引用解析异常：" + n.getNameAsString() + "." +
-                        n.getArguments().toString().replace("[","(").replace("]",")")
-                        +" 因为：" + e.getMessage() + " 发生在-->" + n.getRange().get().begin + ":" +n.toString());
+                        n.getArguments().toString().replace("[", "(").replace("]", ")")
+                        + " 因为：" + e.getMessage() + " 发生在-->" + n.getRange().get().begin + ":" + n.toString());
 //                e.printStackTrace();
             }
 //            printSymbolType(resolvedMethodDeclaration, n); // 调试用
