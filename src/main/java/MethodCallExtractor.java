@@ -9,8 +9,9 @@ import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParse
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserMethodDeclaration;
 import com.github.javaparser.symbolsolver.javassistmodel.JavassistMethodDeclaration;
 import com.github.javaparser.symbolsolver.reflectionmodel.ReflectionMethodDeclaration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -22,6 +23,9 @@ import java.util.Map;
  * 方法调用提取类
  */
 public class MethodCallExtractor {
+
+    private static Logger logger = LoggerFactory.getLogger(MethodCallExtractor.class);
+
     public static void main(String[] args) {
 
         String srcPath = "D:\\git\\jp\\data\\MaintenanceUPL\\src\\main\\java";//扫描的工程目录，从包含com.huawei.it的目录开始
@@ -32,7 +36,7 @@ public class MethodCallExtractor {
     }
 
     public Map<String, List<String>> getMethodCallRelationByDefault() {
-
+        logger.info("从resources目录下配置文件定义的扫描目录开始扫描代码，分析方法调用关系...");
         List<String> srcPaths = Utils.getLinesFrom(Utils.SRC_CFG);
         List<String> libPaths = Utils.getLinesFrom(Utils.LIB_CFG);
         return getMethodCallRelation(srcPaths, libPaths);
