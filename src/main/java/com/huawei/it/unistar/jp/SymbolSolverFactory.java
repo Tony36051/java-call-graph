@@ -1,8 +1,12 @@
+package com.huawei.it.unistar.jp;
+
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JarTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -10,21 +14,17 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class SymbolSolverFactory {
-    public static JavaSymbolSolver getJavaSymbolSolverFromConfig(String srcCfg, String libCfg){
+
+    private static Logger logger = LoggerFactory.getLogger(SymbolSolverFactory.class);
+
+    public static JavaSymbolSolver getJavaSymbolSolverFromConfig(String srcCfg, String libCfg) {
         List<String> srcPaths = Utils.getLinesFrom(srcCfg);
         List<String> libPaths = Utils.getLinesFrom(libCfg);
-        return  getJavaSymbolSolver(srcPaths, libPaths);
+        return getJavaSymbolSolver(srcPaths, libPaths);
     }
 
-    public static JavaSymbolSolver getJavaSymbolSolverByDefault(){
+    public static JavaSymbolSolver getJavaSymbolSolverByDefault() {
         return getJavaSymbolSolverFromConfig(Utils.SRC_CFG, Utils.LIB_CFG);
-    }
-
-
-
-    //获取符号推理器
-    public JavaSymbolSolver getJavaSymbolSolver(String srcPath, String libPath) {
-        return getJavaSymbolSolver(Utils.makeListFromOneElement(srcPath), Utils.makeListFromOneElement(libPath));
     }
 
     //获取符号推理器
@@ -50,6 +50,7 @@ public class SymbolSolverFactory {
                 jarTypeSolvers.add(new JarTypeSolver(jarPath));
             }
         } catch (IOException e) {
+            logger.error("找不到：" + e.getMessage());
             e.printStackTrace();
         }
         return jarTypeSolvers;
@@ -60,5 +61,10 @@ public class SymbolSolverFactory {
         List<JavaParserTypeSolver> javaParserTypeSolvers = srcPaths.stream()
                 .map(t -> new JavaParserTypeSolver(new File(t))).collect(Collectors.toList());
         return javaParserTypeSolvers;
+    }
+
+    //获取符号推理器
+    public JavaSymbolSolver getJavaSymbolSolver(String srcPath, String libPath) {
+        return getJavaSymbolSolver(Utils.makeListFromOneElement(srcPath), Utils.makeListFromOneElement(libPath));
     }
 }

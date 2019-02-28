@@ -1,3 +1,5 @@
+package com.huawei.it.unistar.jp;
+
 import java.util.HashSet;
 import java.util.Set;
 

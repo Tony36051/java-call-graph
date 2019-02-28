@@ -1,3 +1,5 @@
+package com.huawei.it.unistar.jp;
+
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.MethodDeclaration;
@@ -27,12 +29,9 @@ public class MethodCallExtractor {
     private static Logger logger = LoggerFactory.getLogger(MethodCallExtractor.class);
 
     public static void main(String[] args) {
-
-        String srcPath = "D:\\git\\jp\\data\\MaintenanceUPL\\src\\main\\java";//扫描的工程目录，从包含com.huawei.it的目录开始
-        String libPath = "D:\\git\\jp\\data\\lib"; //工程依赖的包， 可以不配
         MethodCallExtractor extractor = new MethodCallExtractor();
-        Map<String, List<String>> methodCallRelation = extractor.getMethodCallRelation(srcPath, libPath);
-        Utils.printMap(methodCallRelation);
+        Map<String, List<String>> methodCallRelation = extractor.getMethodCallRelationByDefault();
+//        Utils.printMap(methodCallRelation);
     }
 
     public Map<String, List<String>> getMethodCallRelationByDefault() {
@@ -62,7 +61,7 @@ public class MethodCallExtractor {
         int javaFileNum = javaFiles.size();
         for (int i = 0; i < javaFiles.size(); i++) {
             String javaFile = javaFiles.get(i);
-            System.out.println(i + "/" + javaFileNum + " processing: " + javaFile);
+            logger.debug("{}/{} processing: {}", i, javaFileNum, javaFile);
             extract(javaFile, callerCallees);
         }
         return callerCallees;
@@ -87,7 +86,7 @@ public class MethodCallExtractor {
                 caller = methodDeclaration.resolve().getQualifiedSignature();
             } catch (Exception e) {
                 caller = methodDeclaration.getSignature().asString();
-                System.out.println("ERROR无法获取全限定方法名：" + caller + " 因为：" + e.getMessage());
+                logger.error("Use {} instead of  qualified signature, cause: {}", caller, e.getMessage());
             }
             assert caller != null;
             if (!callerCallees.containsKey(caller)) {
@@ -111,12 +110,12 @@ public class MethodCallExtractor {
                     collector.add(n.resolve().getQualifiedSignature());
                 }
             } catch (Exception e) {
-                System.out.println("Error引用解析异常：" + n.getNameAsString() + "." +
-                        n.getArguments().toString().replace("[", "(").replace("]", ")")
-                        + " 因为：" + e.getMessage() + " 发生在-->" + n.getRange().get().begin + ":" + n.toString());
-//                e.printStackTrace();
+                logger.error("Line {}, {} cannot resolve some symbol, because {}",
+                        n.getRange().get().begin.line,
+                        n.getNameAsString() + n.getArguments().toString().replace("[", "(").replace("]", ")"),
+                        e.getMessage());
             }
-//            printSymbolType(resolvedMethodDeclaration, n); // 调试用
+            printSymbolType(resolvedMethodDeclaration, n); // 调试用
             // Don't forget to call super, it may find more method calls inside the arguments of this method call, for example.
             super.visit(n, collector);
         }
@@ -124,15 +123,15 @@ public class MethodCallExtractor {
         private void printSymbolType(ResolvedMethodDeclaration resolvedMethodDeclaration, MethodCallExpr n) {
             if (resolvedMethodDeclaration != null) {
                 if (resolvedMethodDeclaration instanceof JavaParserMethodDeclaration) {
-                    System.out.println("依赖src==> " + n.resolve().getQualifiedSignature());
+                    logger.trace("depend on src: {}", resolvedMethodDeclaration.getQualifiedSignature());
                 } else if (resolvedMethodDeclaration instanceof ReflectionMethodDeclaration) {
-                    System.out.println("依赖jdk==> " + n.resolve().getQualifiedSignature());
+                    logger.trace("depend on jdk: {}", resolvedMethodDeclaration.getQualifiedSignature());
                 } else if (resolvedMethodDeclaration instanceof JavassistMethodDeclaration) {
-                    System.out.println("依赖jar==>" + n.resolve().getQualifiedSignature());
+                    logger.trace("depend on jar: {}", resolvedMethodDeclaration.getQualifiedSignature());
                 } else if (resolvedMethodDeclaration instanceof JavaParserEnumDeclaration.ValuesMethod) {
-                    System.out.println("依赖临时新增在内存的方法, 不应该出现" + n.resolve().getQualifiedSignature());
+                    logger.error("depend on mem: {}", resolvedMethodDeclaration.getQualifiedSignature());
                 } else {
-                    System.out.println("能符号解析, 但未知类型. 不应该出现" + n.resolve().getQualifiedSignature());
+                    logger.error("depend on ???: {}", resolvedMethodDeclaration.getQualifiedSignature());
                 }
             }
         }

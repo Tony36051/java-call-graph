@@ -1,3 +1,5 @@
+package com.huawei.it.unistar.jp;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -10,6 +12,8 @@ public class Utils {
 
     public static String SRC_CFG = "src.cfg";
     public static String LIB_CFG = "lib.cfg";
+    public static String SKIP_CFG = "skip.cfg";
+    public static String OUTPUT_DIR = "output";
 
     public static void printMap(Map<String, List<String>> callerCallees) {
         callerCallees.entrySet().stream().filter(t -> !t.getValue().isEmpty())
@@ -37,7 +41,7 @@ public class Utils {
         return files;
     }
 
-    private static File getFileInResources(String fileName){
+    private static File getFileInResources(String fileName) {
         ClassLoader classLoader = Utils.class.getClassLoader();
         File file = new File(classLoader.getResource(fileName).getFile());
         return file;
@@ -60,6 +64,20 @@ public class Utils {
             e.printStackTrace();
         }
         return lines;
+    }
+
+    public static void writeLinesTo(List<String> lines, String fileName) {
+        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(OUTPUT_DIR + "/" + removeIllegalChar(fileName)))) {
+            for (String line : lines) {
+                bufferedWriter.write(line + "\n");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static String removeIllegalChar(String fileName){
+        return fileName.replaceAll("[^a-zA-Z0-9\\.\\-]", "_");
     }
 
     public static <T> List<T> makeListFromOneElement(T object) {
