@@ -52,7 +52,7 @@
         <!--过滤掉spring和mybatis的一些无用的DEBUG信息-->
         <logger name="org.springframework" level="INFO" additivity="false"></logger>
         <logger name="org.mybatis" level="INFO"></logger>
-        <logger name="com.huawei.it.unistar.jp" level="debug">
+        <logger name="com.huawei.it.unistar.jp" level="TRACE">
             <appender-ref ref="log"/>
         </logger>
 

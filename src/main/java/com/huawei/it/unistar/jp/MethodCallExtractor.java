@@ -106,6 +106,7 @@ public class MethodCallExtractor {
             try {
                 resolvedMethodDeclaration = n.resolve();
                 // 仅关注提供src目录的工程代码
+                resolvedMethodDeclaration.get
                 if (resolvedMethodDeclaration instanceof JavaParserMethodDeclaration) {
                     collector.add(n.resolve().getQualifiedSignature());
                 }
